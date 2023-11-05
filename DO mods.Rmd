@@ -1,0 +1,221 @@
+---
+title: "Double Object Dative Models"
+author: "Jacqueline Erens"
+date: '2023-09-25'
+output: html_document
+---
+### I just wanted to fit some simple models
+
+```{r}
+set.seed(42)
+library(brms)
+library(coda)
+```
+
+```{r}
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+nrow(DO_data)
+```
+
+# DO Recipient Models
+
+```{r DO Recipient Cosine People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_Cosine_People <- brm(DO_Recipient_Duration ~ scaled_cosine_people + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_Cosine_People)
+plot(DO_Recipient_Cosine_People)
+```
+
+```{r DO Recipient PMI People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_PMI_People <- brm(DO_Recipient_Duration ~ scaled_pmi_people + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_PMI_People)
+plot(DO_Recipient_PMI_People)
+```
+
+```{r DO Recipient PMI Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_PMI_Item <- brm(DO_Recipient_Duration ~ scaled_pmi_items + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_PMI_Item)
+plot(DO_Recipient_PMI_Item)
+```
+
+```{r DO Recipient Syllables People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_num_syllables_second_person <- brm(DO_Recipient_Duration ~ scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_scaled_num_syllables_second_person)
+plot(DO_Recipient_scaled_num_syllables_second_person)
+```
+
+```{r DO Recipient Syllable Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_num_syllables_item <- brm(DO_Recipient_Duration ~ scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_scaled_num_syllables_item)
+plot(DO_Recipient_scaled_num_syllables_item)
+```
+
+```{r DO Recipient Name Agreement People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_name_agreement_second_person <- brm(DO_Recipient_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_scaled_name_agreement_second_person)
+plot(DO_Recipient_scaled_name_agreement_second_person)
+```
+
+```{r DO Recipient Name Agreement Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_name_agreement_item <- brm(DO_Recipient_Duration ~ scaled_name_agreement_item + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_scaled_name_agreement_item)
+plot(DO_Recipient_scaled_name_agreement_item)
+```
+
+```{r DO Recipient Frequency People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_second_person_frequency <- brm(DO_Recipient_Duration ~ scaled_second_person_frequency + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_scaled_second_person_frequency)
+plot(DO_Recipient_scaled_second_person_frequency)
+```
+
+```{r DO Recipient Frequency Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_item_frequency <- brm(DO_Recipient_Duration ~ scaled_item_frequency + (1|ParticipantNum),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Recipient_scaled_item_frequency)
+plot(DO_Recipient_scaled_item_frequency)
+```
+
+# DO Item Models
+
+```{r DO Item Cosine People}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_Cosine_People <- brm(DO_Item_Duration ~ scaled_cosine_people + (1|ParticipantNum),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_Cosine_People)
+plot(DO_Item_Cosine_People)
+```
+
+```{r DO Item PMI People}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_PMI_People <- brm(DO_Item_Duration ~ scaled_pmi_people + (1|ParticipantNum),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_PMI_People)
+plot(DO_Item_PMI_People)
+```
+
+```{r DO Item PMI Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_PMI_Item <- brm(DO_Item_Duration ~ scaled_pmi_items + (1|ParticipantNum),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_PMI_Item)
+plot(DO_Item_PMI_Item)
+```
+
+```{r DO Item Syllables People}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_scaled_num_syllables_second_person <- brm(DO_Item_Duration ~ scaled_num_syllables_second_person + (1|ParticipantNum) ,
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_scaled_num_syllables_second_person)
+plot(DO_Item_scaled_num_syllables_second_person)
+```
+
+```{r DO Item Syllable Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_scaled_num_syllables_item <- brm(DO_Item_Duration ~ scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_scaled_num_syllables_item)
+plot(DO_Item_scaled_num_syllables_item)
+```
+
+```{r DO Item Name Agreement People}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_scaled_name_agreement_second_person <- brm(DO_Item_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_scaled_name_agreement_second_person)
+plot(DO_Item_scaled_name_agreement_second_person)
+```
+
+```{r DO Item Name Agreement Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_scaled_name_agreement_item <- brm(DO_Item_Duration ~ scaled_name_agreement_item + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_scaled_name_agreement_item)
+plot(DO_Item_scaled_name_agreement_item)
+```
+
+```{r DO Item Frequency People}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_scaled_second_person_frequency <- brm(DO_Item_Duration ~ scaled_second_person_frequency + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_scaled_second_person_frequency)
+plot(DO_Item_scaled_second_person_frequency)
+```
+
+```{r DO Item Frequency Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Item_scaled_item_frequency <- brm(DO_Item_Duration ~ scaled_item_frequency + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = DO_data)
+summary(DO_Item_scaled_item_frequency)
+plot(DO_Item_scaled_item_frequency)
+```

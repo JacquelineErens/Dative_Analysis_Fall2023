@@ -1,0 +1,85 @@
+---
+title: "Visualizations"
+author: "Jacqueline Erens"
+date: '2023-09-28'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Read in Prepositional Object Data
+
+```{r}
+PO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_PO_with_durations.csv')
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+```
+
+# Means and SEs for the item durations
+```{r}
+PO_data %>% 
+    group_by(Condition) %>%
+    summarize(
+        mean_duration_item = mean(PO_Item_Duration, na.rm = TRUE),
+        se_value = sd(PO_Item_Duration, na.rm = TRUE) / sqrt(n()))
+
+#and then if you want syllable brekdowns
+PO_data %>% 
+    group_by(Condition, nsyl_items) %>%
+    summarize(
+        mean_duration_item = mean(PO_Item_Duration, na.rm = TRUE),
+        se_value = sd(PO_Item_Duration, na.rm = TRUE) / sqrt(n()))
+```
+
+# And then means and SEs for the recipients
+```{r}
+PO_data %>% 
+    group_by(Condition) %>%
+    summarize(
+        mean_recipient_item = mean(PO_Recipient_Duration, na.rm = TRUE),
+        se_value = sd(PO_Recipient_Duration, na.rm = TRUE) / sqrt(n()))
+
+#and then if you want syllables
+PO_data %>% 
+    group_by(Condition, nysl_people) %>%
+    summarize(
+        mean_recipient_item = mean(PO_Recipient_Duration, na.rm = TRUE),
+        se_value = sd(PO_Recipient_Duration, na.rm = TRUE) / sqrt(n()))
+```
+
+#Then do the means and SEs for the recipients in the DO sentences (person gave PERSON the item)
+```{r}
+DO_data %>% 
+    group_by(Condition) %>%
+    summarize(
+        mean_recipient_item = mean(DO_Recipient_Duration, na.rm = TRUE),
+        se_value = sd(DO_Recipient_Duration, na.rm = TRUE) / sqrt(n()))
+
+#now include syllables 
+DO_data %>% 
+    group_by(Condition, nsyl_people) %>%
+    summarize(
+        mean_recipient_item = mean(DO_Recipient_Duration, na.rm = TRUE),
+        se_value = sd(DO_Recipient_Duration, na.rm = TRUE) / sqrt(n()))
+```
+
+#And lastly the means and SEs for the items in the DO sentences (person gave person the ITEM)
+```{r}
+DO_data %>% 
+    group_by(Condition) %>%
+    mutate(Condition_Mean_Duration = 
+               mean(DO_Item_Duration, na.rm = TRUE)) %>%
+    summarize(
+        mean_recipient_item = mean(DO_Item_Duration, na.rm = TRUE),
+        se_value = sd(DO_Item_Duration, na.rm = TRUE) / sqrt(n()))
+
+# now include syllables for the item
+DO_data %>% 
+    group_by(Condition, nsyl_items) %>%
+    summarize(
+        mean_recipient_item = mean(DO_Item_Duration, na.rm = TRUE),
+        se_value = sd(DO_Item_Duration, na.rm = TRUE) / sqrt(n()),
+        diff_from_mean = Condition_Mean_Duration - mean(DO_Item_Duration, na.rm = TRUE))
+```

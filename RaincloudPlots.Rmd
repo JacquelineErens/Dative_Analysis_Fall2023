@@ -1,0 +1,314 @@
+---
+title: "RaincloudPlots"
+author: "Jacqueline Erens"
+date: '2023-09-28'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load in packages
+```{r load packages}
+library(ggplot2)
+library(gghalves)
+library(tidyverse)
+library(PupillometryR) #for the geomflatviolin
+library(wesanderson) #for color palettes
+```
+
+## Load in Data
+```{r read data}
+PO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_PO_with_durations.csv')
+head(PO_data)
+nrow(PO_data)
+
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+nrow(DO_data)
+```
+## Cutoffs for Exclusion Criteria (3 sd above or below mean)
+
+```{r set 3sd cutoffs for PO sentences}
+sd_of_PO_recipient_duration = sd(PO_data$PO_Recipient_Duration, na.rm = TRUE)
+sd_of_PO_recipient_duration_cutoff = 3*sd_of_PO_recipient_duration
+
+sd_of_PO_item_duration = sd(PO_data$PO_Item_Duration, na.rm = TRUE)
+sd_of_PO_item_duration_cutoff = 3*sd_of_PO_item_duration
+```
+
+```{r set 3sd cutoffs for DO sentences}
+sd_of_DO_recipient_duration = sd(DO_data$DO_Recipient_Duration, na.rm = TRUE)
+sd_of_DO_recipient_duration_cutoff = 3*sd_of_DO_recipient_duration
+
+sd_of_DO_item_duration = sd(DO_data$DO_Item_Duration, na.rm = TRUE)
+sd_of_DO_item_duration_cutoff = 3*sd_of_DO_item_duration
+```
+
+```{r We didn't discuss trimming outliers for the initiation latencies but just incase}
+sd_of_DO_init_duration = sd(DO_data$DO_Initiation_Latency, na.rm = TRUE)
+sd_of_DO_init_cutoff = 3*sd_of_DO_init_duration
+
+sd_of_PO_init_duration = sd(PO_data$PO_Initiation_Latency, na.rm = TRUE)
+sd_of_PO_init_cutoff = 3*sd_of_PO_init_duration
+```
+
+
+## Raincloud Plots for PO Recipient Sentences
+
+```{r Raincloud Plot for 1 syllable recipient PO sentences}
+# Filter data for 1 syllables
+PO_recipient_1syl <- PO_data %>% 
+    filter(
+        nsyl_people == 1,
+        between(PO_Recipient_Duration, -sd_of_PO_recipient_duration_cutoff, sd_of_PO_recipient_duration_cutoff))
+
+# Create raincloud plot for 1 syllables
+ggplot(PO_recipient_1syl, aes(x = Condition, y = PO_Recipient_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = PO_Recipient_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "Speaking Durations for Recipients that are 1 Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 2 syllable recipient PO sentences}
+# Filter data for 2 syllables
+PO_recipient_2syl <- PO_data %>% 
+    filter(
+        nsyl_people == 2,
+        between(PO_Recipient_Duration, -sd_of_PO_recipient_duration_cutoff, sd_of_PO_recipient_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(PO_recipient_2syl, aes(x = Condition, y = PO_Recipient_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = PO_Recipient_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "Speaking Durations for Recipients that are 2 Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 3+ syllable recipient PO sentences}
+# Filter data for #+ syllables
+PO_recipient_3syl <- PO_data %>% 
+    filter(
+        nsyl_people >= 3,
+        between(PO_Recipient_Duration, -sd_of_PO_recipient_duration_cutoff, sd_of_PO_recipient_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(PO_recipient_3syl, aes(x = Condition, y = PO_Recipient_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = PO_Recipient_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "Speaking Durations for Recipients that are 3+ Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+## PO Item Duration Plots
+
+```{r Raincloud Plot for 1 syllable item PO sentences}
+# Filter data for 1 syllables
+PO_item_1syl <- PO_data %>% 
+    filter(
+        nsyl_items == 1,
+        between(PO_Item_Duration, -sd_of_PO_item_duration_cutoff, sd_of_PO_item_duration_cutoff))
+
+# Create raincloud plot for 1 syllables
+ggplot(PO_item_1syl, aes(x = Condition, y = PO_Item_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = PO_Item_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "Speaking Durations for Items that are 1 Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 2 syllable recipient PO sentences}
+# Filter data for 2 syllables
+PO_item_2syl <- PO_data %>% 
+    filter(
+        nsyl_items == 2,
+        between(PO_Item_Duration, -sd_of_PO_item_duration_cutoff, sd_of_PO_item_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(PO_item_2syl, aes(x = Condition, y = PO_Item_Duration, fill = Condition)) +
+  theme_minimal(legend.position = 'none') +
+  geom_flat_violin(position = position_nudge(x = .18, y = 0), alpha = 0.8) +
+  geom_point(aes(y = PO_Item_Duration), position = position_jitter(width = .10), color = '#009FD4') +
+  geom_boxplot(width = .1, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "Speaking Durations for Items that are 2 Syllables") +
+  ylab("Duration (s)") +
+  xlab("") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1"))
+```
+
+```{r Raincloud Plot for 3+ syllable recipient PO sentences}
+# Filter data for #+ syllables
+PO_item_3syl <- PO_data %>% 
+    filter(
+        nsyl_items >= 3,
+        between(PO_Item_Duration, -sd_of_PO_item_duration_cutoff, sd_of_PO_item_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(PO_item_3syl, aes(x = Condition, y = PO_Item_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = PO_Item_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "Speaking Durations for Items that are 3+ Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+## DO Recipient Plots
+
+```{r Raincloud Plot for 1 syllable recipient DO sentences}
+# Filter data for 1 syllables
+DO_recipient_1syl <- DO_data %>% 
+    filter(
+        nsyl_people == 1,
+        between(DO_Recipient_Duration, -sd_of_DO_recipient_duration_cutoff, sd_of_DO_recipient_duration_cutoff))
+
+# Create raincloud plot for 1 syllables
+ggplot(DO_recipient_1syl, aes(x = Condition, y = DO_Recipient_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = DO_Recipient_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "DO Sentence Speaking Durations for Recipients that are 1 Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 2 syllable recipient DO sentences}
+# Filter data for 2 syllables
+DO_recipient_2syl <- DO_data %>% 
+    filter(
+        nsyl_people == 2,
+        between(DO_Recipient_Duration, -sd_of_DO_recipient_duration_cutoff, sd_of_DO_recipient_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(DO_recipient_2syl, aes(x = Condition, y = DO_Recipient_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = DO_Recipient_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "DO Sentence Speaking Durations for Recipients that are 2 Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 3+ syllable recipient DO sentences}
+# Filter data for #+ syllables
+DO_recipient_3syl <- DO_data %>% 
+    filter(
+        nsyl_people >= 3,
+        between(DO_Recipient_Duration, -sd_of_DO_recipient_duration_cutoff, sd_of_DO_recipient_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(DO_recipient_3syl, aes(x = Condition, y = DO_Recipient_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = DO_Recipient_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "DO Sentence Speaking Durations for Recipients that are 3+ Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 1 syllable item DO sentences}
+# Filter data for 1 syllables
+DO_item_1syl <- DO_data %>% 
+    filter(
+        nsyl_items == 1,
+        between(DO_Item_Duration, -sd_of_DO_item_duration_cutoff, sd_of_DO_item_duration_cutoff))
+
+# Create raincloud plot for 1 syllables
+ggplot(DO_item_1syl, aes(x = Condition, y = DO_Item_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = DO_Item_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "DO Sentence Speaking Durations for Items that are 1 Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 2 syllable recipient DO sentences}
+# Filter data for 2 syllables
+DO_item_2syl <- DO_data %>% 
+    filter(
+        nsyl_items == 2,
+        between(DO_Item_Duration, -sd_of_DO_item_duration_cutoff, sd_of_DO_item_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(DO_item_2syl, aes(x = Condition, y = DO_Item_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = DO_Item_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "DO Sentence Speaking Durations for Items that are 2 Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r Raincloud Plot for 3+ syllable recipient DO sentences}
+# Filter data for #+ syllables
+DO_item_3syl <- DO_data %>% 
+    filter(
+        nsyl_items >= 3,
+        between(DO_Item_Duration, -sd_of_DO_item_duration_cutoff, sd_of_DO_item_duration_cutoff))
+
+# Create raincloud plot for 2 syllables
+ggplot(DO_item_3syl, aes(x = Condition, y = DO_Item_Duration, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = DO_Item_Duration), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "DO Sentence Speaking Durations for Items that are 3+ Syllables") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+## I guess for sanity check the initiation latencies
+
+```{r}
+#Do outlier filtering, ignore syllable stuff (for now? maybe want to look at that)
+DO_Init <- DO_data %>% 
+    filter(between(DO_Initiation_Latency, -sd_of_DO_init_cutoff, sd_of_DO_init_cutoff))
+
+# Create raincloud plot for DO Initiation latencies
+ggplot(DO_Init, aes(x = Condition, y = DO_Initiation_Latency, fill = Condition)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = DO_Initiation_Latency), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "DO Initiaton Latency Durations") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```
+
+```{r}
+#Do outlier filtering, ignore syllable stuff (for now? maybe want to look at that)
+PO_Init <- PO_data %>% 
+    filter(between(PO_Initiation_Latency, -sd_of_PO_init_cutoff, sd_of_PO_init_cutoff))
+
+# Create raincloud plot for DO Initiation latencies
+ggplot(PO_Init, aes(x = Condition, y = PO_Initiation_Latency, fill = Condition)) + #change to PO data if you don't want trimmed data
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = 0.8) +
+  geom_point(aes(y = PO_Initiation_Latency), position = position_jitter(width = .15), linewidth = 1, alpha = 0.5) +
+  geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, position = position_nudge(x = -.2, y = 0)) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="black", fill="black", position = position_nudge(x = -.2, y = 0)) +
+  labs(title = "PO Initiaton Latency Durations") +
+  scale_fill_manual(values=wes_palette(n=4, name="Chevalier1")) +
+  theme_minimal()
+```

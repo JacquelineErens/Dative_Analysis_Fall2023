@@ -1,0 +1,163 @@
+---
+title: "PO Lmer Models"
+author: "Jacqueline Erens"
+date: "2023-10-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Load in PO Data}
+PO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_PO_with_durations.csv')
+head(PO_data)
+nrow(PO_data)
+```
+
+```{r}
+library(lmerTest)
+library(lme4)
+```
+
+```{r Read in PO Data}
+PO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_PO_with_durations.csv')
+head(PO_data)
+nrow(PO_data)
+```
+
+# PO Recipient Models
+
+```{r PO Recipient Cosine People}
+PO_Recipient_Cosine_People <- lmer(PO_Recipient_Duration ~ scaled_cosine_people + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_Cosine_People)
+plot(PO_Recipient_Cosine_People)
+```
+
+```{r PO Recipient PMI Item}
+PO_Recipient_scaled_pmi_items <- lmer(PO_Recipient_Duration ~ 
+                                                            scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_scaled_pmi_items)
+plot(PO_Recipient_scaled_pmi_items)
+```
+
+```{r PO Recipient PMI People}
+PO_Recipient_scaled_pmi_people <- lmer(PO_Recipient_Duration ~ 
+                                                            scaled_pmi_people + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_scaled_pmi_people)
+plot(PO_Recipient_scaled_pmi_people)
+```
+
+```{r PO Recipient Name Agreement People}
+PO_Recipient_scaled_name_agreement_second_person <- lmer(PO_Recipient_Duration ~ 
+                                                            scaled_name_agreement_second_person + (1|ParticipantNum), data = PO_data)
+summary(PO_Recipient_scaled_name_agreement_second_person)
+plot(PO_Recipient_scaled_name_agreement_second_person)
+```
+
+```{r PO Recipient Name Agreement Items}
+PO_Recipient_scaled_name_agreement_item <- lmer(PO_Recipient_Duration ~ 
+                                                    scaled_name_agreement_item + (1|ParticipantNum), data = PO_data)
+summary(PO_Recipient_scaled_name_agreement_item)
+plot(PO_Recipient_scaled_name_agreement_item)
+```
+
+```{r PO Recipient Frequency People}
+PO_Recipient_scaled_second_person_frequency <- lmer(PO_Recipient_Duration ~ 
+                                                        scaled_second_person_frequency + (1|ParticipantNum), data = PO_data)
+summary(PO_Recipient_scaled_second_person_frequency)
+plot(PO_Recipient_scaled_second_person_frequency)
+```
+
+```{r PO Recipient Frequency Items}
+PO_Recipient_scaled_item_frequency <- lmer(PO_Recipient_Duration ~ 
+                                               scaled_item_frequency + (1|ParticipantNum), data = PO_data)
+summary(PO_Recipient_scaled_item_frequency)
+plot(PO_Recipient_scaled_item_frequency)
+```
+
+```{r PO Recipient Syllable Length People}
+PO_Recipient_scaled_num_syllables_second_person <- lmer(PO_Recipient_Duration ~ 
+                                                            scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_scaled_num_syllables_second_person)
+plot(PO_Recipient_scaled_num_syllables_second_person)
+```
+
+```{r PO Recipient Syllable Length Item}
+PO_Recipient_scaled_num_syllables_item <- lmer(PO_Recipient_Duration ~ 
+                                                            scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_scaled_num_syllables_item)
+plot(PO_Recipient_scaled_num_syllables_item)
+```
+
+# PO Item Models
+
+```{r PO Item Cosine People}
+PO_Item_Cosine_People <- lmer(PO_Item_Duration ~ scaled_cosine_people + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_Cosine_People)
+plot(PO_Item_Cosine_People)
+```
+
+```{r PO Item PMI People}
+PO_Item_PMI_People <- lmer(PO_Item_Duration ~ scaled_pmi_people + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_PMI_People)
+plot(PO_Item_PMI_People)
+```
+
+```{r PO Item PMI Items}
+PO_Item_PMI_Item <- lmer(PO_Item_Duration ~ scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_PMI_Item)
+plot(PO_Item_PMI_Item)
+```
+
+```{r PO Item Syllables People}
+PO_Item_scaled_num_syllables_second_person <- lmer(PO_Item_Duration ~ scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_num_syllables_second_person)
+plot(PO_Item_scaled_num_syllables_second_person)
+```
+
+```{r PO Item Syllable Items}
+PO_Item_scaled_num_syllables_item <- lmer(PO_Item_Duration ~ scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_num_syllables_item)
+plot(PO_Item_scaled_num_syllables_item)
+```
+
+```{r PO Item Name Agreement People}
+PO_Item_scaled_name_agreement_second_person <- lmer(PO_Item_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_name_agreement_second_person)
+plot(PO_Item_scaled_name_agreement_second_person)
+```
+
+```{r PO Item Name Agreement Items}
+PO_Item_scaled_name_agreement_item <- lmer(PO_Item_Duration ~ scaled_name_agreement_item + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_name_agreement_item)
+plot(PO_Item_scaled_name_agreement_item)
+```
+
+```{r PO Item Frequency People}
+PO_Item_scaled_second_person_frequency <- lmer(PO_Item_Duration ~ scaled_second_person_frequency + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_second_person_frequency)
+plot(PO_Item_scaled_second_person_frequency)
+```
+
+```{r PO Item Frequency Items}
+PO_Item_scaled_item_frequency <- lmer(PO_Item_Duration ~ scaled_item_frequency + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_item_frequency)
+plot(PO_Item_scaled_item_frequency)
+```
+
+
+```{r PO Item Syllable Length People}
+PO_Item_scaled_num_syllables_second_person <- lmer(PO_Item_Duration ~ 
+                                                            scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_num_syllables_second_person)
+plot(PO_Item_scaled_num_syllables_second_person)
+```
+
+
+```{r PO Item Syllable Length Item}
+PO_Item_scaled_num_syllables_item <- lmer(PO_Item_Duration ~ 
+                                                            scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_scaled_num_syllables_item)
+plot(PO_Item_scaled_num_syllables_item)
+```

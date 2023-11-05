@@ -1,0 +1,274 @@
+---
+title: "DO & PO More Complex Models"
+author: "Jacqueline Erens"
+date: "2023-10-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lme4)
+library(lmerTest)
+```
+
+## Load in Data
+```{r read data}
+PO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_PO_with_durations.csv')
+head(PO_data)
+nrow(PO_data)
+
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+nrow(DO_data)
+```
+
+# DO Models
+
+```{r DO Recipient Complex PMI}
+
+DO_Recipient_Complex0 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex0)
+plot(DO_Recipient_Complex0)
+
+DO_Recipient_Complex0_2 <- lmer(DO_Recipient_Duration ~ scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex0_2)
+plot(DO_Recipient_Complex0_2)
+
+DO_Recipient_Complex1 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex1)
+plot(DO_Recipient_Complex1)
+
+#take out pmi for items since this is the people
+DO_Recipient_Complex2 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex2)
+plot(DO_Recipient_Complex2)
+
+DO_Recipient_Complex3 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people * scaled_item_frequency+ 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex3)
+plot(DO_Recipient_Complex3)
+
+DO_Recipient_Complex4 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex4)
+plot(DO_Recipient_Complex4)
+
+#none provide better fits over just scaled num syllables second person
+anova(DO_Recipient_Complex0,DO_Recipient_Complex1)
+anova(DO_Recipient_Complex0,DO_Recipient_Complex2)
+anova(DO_Recipient_Complex0,DO_Recipient_Complex3)
+anova(DO_Recipient_Complex0,DO_Recipient_Complex4)
+
+# all these are better fits than the one with the item syllable length included, so dropping that
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex1)
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex2)
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex3)
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex4)
+
+# more complex model not a better fit
+anova(DO_Recipient_Complex1,DO_Recipient_Complex2)
+
+summary(DO_Recipient_Complex2)
+```
+
+```{r DO Recipient Complex Cosine}
+
+DO_Recipient_Complex_Cos0 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex_Cos0)
+plot(DO_Recipient_Complex_Cos0)
+
+DO_Recipient_ComplexCos0_2 <- lmer(DO_Recipient_Duration ~ scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_ComplexCos0_2)
+plot(DO_Recipient_ComplexCos0_2)
+
+DO_Recipient_ComplexCos1 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_cosine_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_ComplexCos1) #only scaled name agreement
+plot(DO_Recipient_ComplexCos1)
+
+DO_Recipient_ComplexCos2 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_cosine_people * scaled_item_frequency+ 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_ComplexCos2)
+plot(DO_Recipient_ComplexCos2) #only scaled cosine of the people
+
+DO_Recipient_ComplexCos3 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_ComplexCos3)
+plot(DO_Recipient_ComplexCos3)
+
+DO_Recipient_ComplexCos4 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_num_syllables_item * scaled_cosine_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_ComplexCos4)
+plot(DO_Recipient_ComplexCos4)
+
+#none provide better fits over just scaled num syllables second person
+anova(DO_Recipient_Complex0,DO_Recipient_Complex1)
+anova(DO_Recipient_Complex0,DO_Recipient_Complex2)
+anova(DO_Recipient_Complex0,DO_Recipient_Complex3)
+anova(DO_Recipient_Complex0,DO_Recipient_Complex4)
+
+# all these are better fits than the one with the item syllable length included, so dropping that
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex1)
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex2)
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex3)
+anova(DO_Recipient_Complex0_2,DO_Recipient_Complex4)
+
+#Final Model
+summary(DO_Recipient_ComplexCos2)
+```
+
+```{r DO Recipient Complex Contrast Coding}
+DO_Recipient_Complex__Contrast0 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex__Contrast0)
+plot(DO_Recipient_Complex__Contrast0)
+
+DO_Recipient_Complex_Contrast0_2 <- lmer(DO_Recipient_Duration ~ scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex_Contrast0_2)
+plot(DO_Recipient_Complex_Contrast0_2)
+
+DO_Recipient_Complex_Contrast1 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * contrast_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex_Contrast1) #only scaled name agreement
+plot(DO_Recipient_Complex_Contrast1)
+
+DO_Recipient_Complex_Contrast2 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * contrast_person * scaled_item_frequency+ 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex_Contrast2)
+plot(DO_Recipient_Complex_Contrast2) #only scaled cosine of the people
+
+DO_Recipient_Complex_Contrast3 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex_Contrast3)
+plot(DO_Recipient_Complex_Contrast3)
+
+DO_Recipient_Complex_Contrast4 <- lmer(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_num_syllables_item * contrast_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Complex_Contrast4)
+plot(DO_Recipient_Complex_Contrast4)
+
+#Final Model
+summary(DO_Recipient_Complex_Contrast2)
+```
+
+```{r DO Item Complex PMI}
+DO_Item_Complex0 <- lmer(DO_Item_Duration ~ scaled_name_agreement_second_person * scaled_item_frequency * scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_Complex0)
+plot(DO_Item_Complex0)
+
+#take out pmi for people since this is the item
+DO_Item_Complex1 <- lmer(DO_Item_Duration ~ scaled_name_agreement_second_person * scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_Complex1)
+plot(DO_Item_Complex1)
+
+anova(DO_Item_Complex0,DO_Item_Complex1)
+
+DO_Item_Complex2 <- lmer(DO_Item_Duration ~ scaled_name_agreement_second_person * scaled_item_frequency + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_Complex2)
+plot(DO_Item_Complex2)
+```
+
+# PO Models
+
+```{r PO Item Complex PMI}
+# A fun 3-way interaction
+PO_Item_Complex_PMI <- lmer(PO_Item_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_Complex_PMI)
+plot(PO_Item_Complex_PMI)
+
+#take out pmi for people since this models the item duration
+PO_Item_Complex_PMI_1 <- lmer(PO_Item_Duration ~ scaled_name_agreement_second_person * 
+                             scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_Complex_PMI_1)
+plot(PO_Item_Complex_PMI_1)
+
+#nysl doesn't matter
+PO_Item_Complex_PMI_3 <- lmer(PO_Item_Duration ~ scaled_name_agreement_second_person * 
+                             scaled_pmi_items * scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_Complex_PMI_3)
+plot(PO_Item_Complex_PMI_3)
+
+
+anova(PO_Item_Complex_PMI, PO_Item_Complex_PMI_1) #not significantly different, so which to use
+```
+
+```{r PO Item Contrast Coded}
+# A fun 3-way interaction
+PO_Item_Complex_Contrast <- lmer(PO_Item_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_Complex_Contrast)
+plot(PO_Item_Complex_Contrast)
+
+#take out pmi for people since this models the item duration
+PO_Item_Complex_Contrast_1 <- lmer(PO_Item_Duration ~ scaled_name_agreement_second_person * 
+                             contrast_item + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_Complex_Contrast_1)
+plot(PO_Item_Complex_Contrast_1)
+
+#nysl doesn't matter
+PO_Item_Complex_Contrast_3 <- lmer(PO_Item_Duration ~ scaled_name_agreement_second_person * 
+                             contrast_item * scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Item_Complex_Contrast_3)
+plot(PO_Item_Complex_Contrast_3)
+
+
+anova(PO_Item_Complex_Contrast, PO_Item_Complex_Contrast_1) #not significantly different, so which to use
+```
+
+```{r PO Recipient Complex PMI}
+
+PO_Recipient_Complex_PMI1 <- lmer(PO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_Complex_PMI1)
+plot(PO_Recipient_Complex_PMI1)
+
+#take out pmi for items since this is the people
+PO_Recipient_Complex_PMI2 <- lmer(PO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_Complex_PMI2)
+plot(PO_Recipient_Complex_PMI2)
+
+anova(PO_Recipient_Complex_PMI1,PO_Recipient_Complex_PMI2)
+```
+
+### Only scaled name agreement of second person ever significant when both PMI and name agreement included ###
+
+```{r PO Recipient Complex COSINE}
+
+PO_Recipient_Complex_COS1 <- lmer(PO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_cosine_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_Complex_COS1)
+plot(PO_Recipient_Complex_COS1)
+
+#take out pmi for items since this is the people
+PO_Recipient_Complex_COS2 <- lmer(PO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_Complex_COS2)
+plot(PO_Recipient_Complex_COS2)
+
+anova(PO_Recipient_Complex_COS1,PO_Recipient_Complex_COS2)
+```
+### both scaled name agreement of second person and cosine significant when both cosine and name agreement included, no interaction ###
+### Unclear how to interpret that anova test, I think it's that the more complex model is better ###
+
+```{r PO Recipient Complex contrast coded}
+
+PO_Recipient_Complex_Contrast1 <- lmer(PO_Recipient_Duration ~ scaled_name_agreement_second_person * contrast_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_Complex_Contrast1)
+plot(PO_Recipient_Complex_Contrast1)
+
+#take out pmi for items since this is the people
+PO_Recipient_Complex_Contrast2 <- lmer(PO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), data = PO_data)
+summary(PO_Recipient_Complex_Contrast2)
+plot(PO_Recipient_Complex_Contrast2)
+
+anova(PO_Recipient_Complex_Contrast1,PO_Recipient_Complex_Contrast2)
+```

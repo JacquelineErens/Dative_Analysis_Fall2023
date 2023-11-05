@@ -1,0 +1,714 @@
+---
+title: "Timing Analysis Code"
+format: html
+editor: source
+---
+
+## Load in Packages
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(brms)
+library(coda)
+library(ggplot2)
+library(ggrain)
+library(readxl)
+```
+
+## Read in Data
+
+```{r}
+getwd()
+
+timing_data <- read.csv("../Master_Data_File.csv")
+head(timing_data)
+```
+## Filter to useable trials
+
+```{r}
+timing_data_useable <- 
+    timing_data |> 
+    filter(TimingUseable == 1)
+```
+
+
+```{r}
+nrow(timing_data) #1200
+nrow(timing_data_useable) #1018
+```
+
+```{r}
+LookupTable_T <- read.csv("~/Desktop/projects/FYP/NLP_Lookup_Table2.csv")
+View(LookupTable_T)
+```
+
+## Put in code to use the stimuli properties file (Frequency, language statistics)
+
+```{r}
+#you have both a person and an item in this version so keep track of both their frequencies and co-occurrences and PMIs
+freq_anchor_vec_T <- c()
+freq_person_vec_T <- c()
+freq_item_vec_T <- c()
+
+cooc_vec_people_T <- c()
+cooc_vec_item_T   <- c()
+
+PMI_vec_people_T <- c()
+PMI_vec_item_T   <- c()
+
+cos_people_vec_T <- c()
+
+nsyl_person_vec_T <- c()
+nsyl_item_vec_T   <- c()
+
+NA_person_vec_T <- c()
+NA_item_vec_T   <- c()
+
+conds_T <- c("RR", "RU", "UR", "UU")
+
+RRc_T <- 0
+RUc_T <- 0
+URc_T <- 0
+UUc_T <- 0
+
+RRg_T <- length(which(timing_data_useable$Condition == "RR"))
+RUg_T <- length(which(timing_data_useable$Condition == "RU"))
+URg_T <- length(which(timing_data_useable$Condition == "UR"))
+UUg_T <- length(which(timing_data_useable$Condition == "UU"))
+
+for(i in 1:nrow(timing_data_useable)){
+  
+  row_to_use_T <- which(LookupTable_T$Anchor == timing_data_useable$Anchor[i]) #get the row with the info for the specific stimuli item
+  freq_anchor_vec_T <- append(freq_anchor_vec_T, LookupTable_T[which(LookupTable_T$Anchor == timing_data_useable$Anchor[i]),'Fanchor'])
+  
+  if (timing_data_useable$Condition[i]=="RR") {
+    PMI_vec_people_T <- append(PMI_vec_people_T, LookupTable_T[row_to_use_T, 'PMI_RP'])
+    PMI_vec_item_T <- append(PMI_vec_item_T, LookupTable_T[row_to_use_T, 'PMI_RI'])
+    
+    cooc_vec_people_T <- append(cooc_vec_people_T, LookupTable_T[row_to_use_T, 'COOCRelatedPerson'])
+    cooc_vec_item_T <- append(cooc_vec_item_T, LookupTable_T[row_to_use_T, 'COOCRelatedItem'])
+    
+    cos_people_vec_T <- append(cos_people_vec_T, LookupTable_T[row_to_use_T, 'COSRelatedPerson'])
+    
+    freq_person_vec_T <- append(freq_person_vec_T, LookupTable_T[row_to_use_T, 'FRP'])
+    freq_item_vec_T <- append(freq_item_vec_T, LookupTable_T[row_to_use_T, 'FRI'])
+
+    nsyl_person_vec_T <- append(nsyl_person_vec_T, LookupTable_T[row_to_use_T, 'NsylRP'])
+    nsyl_item_vec_T <- append(nsyl_item_vec_T, LookupTable_T[row_to_use_T, 'NsylRI'])
+
+    NA_person_vec_T <- append(NA_person_vec_T, LookupTable_T[row_to_use_T, 'NameAgreeRP'])
+    NA_item_vec_T <- append(NA_item_vec_T,  LookupTable_T[row_to_use_T, 'NameAgreeRI'])
+    
+    RRc_T <- RRc_T + 1
+    
+    } else if (timing_data_useable$Condition[i]=="RU") {
+    PMI_vec_people_T  <- append(PMI_vec_people_T, LookupTable_T[row_to_use_T, 'PMI_RP'])
+    PMI_vec_item_T    <- append(PMI_vec_item_T, LookupTable_T[row_to_use_T, 'PMI_UI'])
+    
+    cooc_vec_people_T <- append(cooc_vec_people_T, LookupTable_T[row_to_use_T,'COOCRelatedPerson'])
+    cooc_vec_item_T   <- append(cooc_vec_item_T, LookupTable_T[row_to_use_T, 'COOCUnrelatedItem'])
+    
+    cos_people_vec_T  <- append(cos_people_vec_T, LookupTable_T[row_to_use_T, 'COSRelatedPerson'])
+    
+    freq_person_vec_T <- append(freq_person_vec_T, LookupTable_T[row_to_use_T, 'FRP'])
+    freq_item_vec_T   <- append(freq_item_vec_T, LookupTable_T[row_to_use_T, 'FUI'])
+
+    nsyl_person_vec_T <- append(nsyl_person_vec_T, LookupTable_T[row_to_use_T, 'NsylRP'])
+    nsyl_item_vec_T   <- append(nsyl_item_vec_T, LookupTable_T[row_to_use_T, 'NsylUI'])
+
+    NA_person_vec_T   <- append(NA_person_vec_T, LookupTable_T[row_to_use_T, 'NameAgreeRP'])
+    NA_item_vec_T     <- append(NA_item_vec_T,  LookupTable_T[row_to_use_T, 'NameAgreeUI'])
+    
+    RUc_T <- RUc_T + 1
+    
+    } else if  (timing_data_useable$Condition[i]=="UR") {
+    PMI_vec_people_T  <- append(PMI_vec_people_T, LookupTable_T[row_to_use_T, 'PMI_UP'])
+    PMI_vec_item_T    <- append(PMI_vec_item_T, LookupTable_T[row_to_use_T, 'PMI_RI'])
+    
+    cooc_vec_people_T <- append(cooc_vec_people_T, LookupTable_T[row_to_use_T, 'COOCUnrelatedPerson'])
+    cooc_vec_item_T   <- append(cooc_vec_item_T, LookupTable_T[row_to_use_T, 'COOCRelatedItem'])
+    
+    cos_people_vec_T  <- append(cos_people_vec_T, LookupTable_T[row_to_use_T, 'COSUnrelatedPerson'])
+    
+    freq_person_vec_T <- append(freq_person_vec_T, LookupTable_T[row_to_use_T, 'FUP'])
+    freq_item_vec_T   <- append(freq_item_vec_T, LookupTable_T[row_to_use_T, 'FRI'])
+
+    nsyl_person_vec_T <- append(nsyl_person_vec_T, LookupTable_T[row_to_use_T, 'NsylUP'])
+    nsyl_item_vec_T   <- append(nsyl_item_vec_T, LookupTable_T[row_to_use_T, 'NsylRI'])
+
+    NA_person_vec_T   <- append(NA_person_vec_T, LookupTable_T[row_to_use_T, 'NameAgreeUP'])
+    NA_item_vec_T     <- append(NA_item_vec_T,  LookupTable_T[row_to_use_T, 'NameAgreeRI'])
+    
+    URc_T <- URc_T + 1
+    
+    } else if(timing_data_useable$Condition[i]=="UU") {
+    PMI_vec_people_T  <- append(PMI_vec_people_T, LookupTable_T[row_to_use_T, 'PMI_UP'])
+    PMI_vec_item_T    <- append(PMI_vec_item_T, LookupTable_T[row_to_use_T, 'PMI_UI'])
+    
+    cooc_vec_people_T <- append(cooc_vec_people_T, LookupTable_T[row_to_use_T, 'COOCUnrelatedPerson'])
+    cooc_vec_item_T   <- append(cooc_vec_item_T, LookupTable_T[row_to_use_T, 'COOCUnrelatedItem'])
+    
+    cos_people_vec_T  <- append(cos_people_vec_T, LookupTable_T[row_to_use_T, 'COSUnrelatedPerson'])
+    
+    freq_person_vec_T <- append(freq_person_vec_T, LookupTable_T[row_to_use_T, 'FUP'])
+    freq_item_vec_T   <- append(freq_item_vec_T, LookupTable_T[row_to_use_T, 'FUI'])
+
+    nsyl_person_vec_T <- append(nsyl_person_vec_T, LookupTable_T[row_to_use_T, 'NsylUP'])
+    nsyl_item_vec_T   <- append(nsyl_item_vec_T, LookupTable_T[row_to_use_T, 'NsylUI'])
+
+    NA_person_vec_T <- append(NA_person_vec_T, LookupTable_T[row_to_use_T, 'NameAgreeUP'])
+    NA_item_vec_T   <- append(NA_item_vec_T,  LookupTable_T[row_to_use_T, 'NameAgreeUI'])
+    
+    UUc_T <- UUc_T + 1
+    
+    }else{
+      print("ran else")
+    }
+}
+
+RRc_T == RRg_T
+RUc_T == RUg_T
+URc_T == URg_T
+UUc_T == UUg_T
+
+#Put in data for frequencies, co-occurrences, PMI, for all items in dataframe
+timing_data_useable$anchor_freq           <- freq_anchor_vec_T
+timing_data_useable$second_person_freq    <- freq_person_vec_T
+timing_data_useable$item_freq             <- freq_item_vec_T
+timing_data_useable$cooc_people           <- cooc_vec_people_T
+timing_data_useable$cooc_item             <- cooc_vec_item_T
+timing_data_useable$pmi_people            <- PMI_vec_people_T
+timing_data_useable$pmi_items             <- PMI_vec_item_T
+timing_data_useable$cos                   <- cos_people_vec_T
+timing_data_useable$nsyl_people           <- nsyl_person_vec_T
+timing_data_useable$nsyl_items            <- nsyl_item_vec_T
+timing_data_useable$name_agreement_people <- NA_person_vec_T
+timing_data_useable$name_agreement_items  <- NA_item_vec_T
+
+#write it to a csv so you have that too, probably will facilitate sharing as well
+write_csv(timing_data_useable, "../transformed_data/data_with_language_stats.csv")
+```
+Check that everything looks like it matched okay
+
+```{r}
+View(timing_data_useable)
+```
+
+Some basic data wrangling/subsetting by conditions, all centering/scaling stuff
+
+Adding contrast codings for relatedness of people and items
+```{r}
+timing_data_useable<-timing_data_useable %>% 
+  mutate(contrast_person = ifelse((timing_data_useable$Condition == "RR" | timing_data_useable$Condition == "RU"), .5, -.5)) %>% 
+  mutate(contrast_item   = ifelse((timing_data_useable$Condition == "RR" | timing_data_useable$Condition == "UR"), .5, -.5)) 
+
+head(timing_data_useable) 
+#should go (.5,-.5), (-.5,.5), (.5,-.5), (-.5,.5), (.5,-.5), (.5.5) - checked, looks good
+```
+
+Centering and Scaling PMI between anchor and second person and anchor and item
+```{r}
+timing_data_useable$centered_pmi_people  <- timing_data_useable$pmi_people - mean(timing_data_useable$pmi_people)
+timing_data_useable$scaled_pmi_people    <- timing_data_useable$centered_pmi_people / sd(timing_data_useable$pmi_people)
+timing_data_useable$centered_pmi_items   <- timing_data_useable$pmi_items - mean(timing_data_useable$pmi_items)
+timing_data_useable$scaled_pmi_items     <- timing_data_useable$centered_pmi_items / sd(timing_data_useable$pmi_items)
+```
+
+Centering and scaling frequency of anchor, second person, and item
+```{r}
+timing_data_useable$centered_anchor_frequency         <- timing_data_useable$anchor_freq - mean(timing_data_useable$anchor_freq)
+timing_data_useable$scaled_anchor_frequency           <- timing_data_useable$centered_anchor_frequency / sd(timing_data_useable$anchor_freq)
+timing_data_useable$centered_second_person_frequency  <- timing_data_useable$second_person_freq  - mean(timing_data_useable$second_person_freq)
+timing_data_useable$scaled_second_person_frequency    <- timing_data_useable$centered_second_person_frequency / sd(timing_data_useable$second_person_freq)
+timing_data_useable$centered_item_frequency           <- timing_data_useable$item_freq - mean(timing_data_useable$item_freq)
+timing_data_useable$scaled_item_frequency             <- timing_data_useable$centered_item_frequency / sd(timing_data_useable$item_freq)
+```
+
+Centering and scaling name agreement of the second person and item
+```{r}
+timing_data_useable$centered_name_agreement_second_person  <- timing_data_useable$name_agreement_people - mean(timing_data_useable$name_agreement_people)
+timing_data_useable$scaled_name_agreement_second_person    <- timing_data_useable$centered_name_agreement_second_person / sd(timing_data_useable$name_agreement_people)
+timing_data_useable$centered_name_agreement_item           <- timing_data_useable$name_agreement_items - mean(timing_data_useable$name_agreement_items)
+timing_data_useable$scaled_name_agreement_item             <- timing_data_useable$centered_name_agreement_item / sd(timing_data_useable$name_agreement_items)
+```
+
+Centering and scaling raw co-occurrence values between anchor and other person and anchor and item
+```{r}
+timing_data_useable$centered_cooccurence_people  <- timing_data_useable$cooc_people - mean(timing_data_useable$cooc_people)
+timing_data_useable$scaled_cooccurence_people    <- timing_data_useable$centered_cooccurence_people / sd(timing_data_useable$cooc_people)
+timing_data_useable$centered_cooccurence_item    <- timing_data_useable$cooc_item - mean(timing_data_useable$cooc_item)
+timing_data_useable$scaled_cooccurence_item      <- timing_data_useable$centered_cooccurence_item / sd(timing_data_useable$cooc_item)
+```
+
+Centering and scaling syllable length of second person and item
+```{r}
+timing_data_useable$centered_num_syllables_second_person  <- timing_data_useable$nsyl_people - mean(timing_data_useable$nsyl_people)
+timing_data_useable$scaled_num_syllables_second_person    <- timing_data_useable$centered_num_syllables_second_person / sd(timing_data_useable$nsyl_people)
+timing_data_useable$centered_num_syllables_item           <- timing_data_useable$nsyl_items - mean(timing_data_useable$nsyl_items)
+timing_data_useable$scaled_num_syllables_item             <- timing_data_useable$centered_num_syllables_item / sd(timing_data_useable$nsyl_items)
+```
+
+Centering and scaling cosine similarity between anchor and second person
+```{r}
+timing_data_useable$centered_cosine_people  <- timing_data_useable$cos - mean(timing_data_useable$cos)
+timing_data_useable$scaled_cosine_people    <- timing_data_useable$centered_cosine_people / sd(timing_data_useable$cos)
+```
+
+## EDA
+
+### Just amount of useable trials in each
+```{r}
+timing_data_useable_RR <- 
+    timing_data_useable |> filter(Condition == "RR")
+timing_data_useable_RU <-
+    timing_data_useable |> filter(Condition == "RU")
+timing_data_useable_UR <-
+    timing_data_useable |> filter(Condition == "UR")
+timing_data_useable_UU <-
+    timing_data_useable |> filter(Condition == "UU")
+
+nrow(timing_data_useable_RR) #248
+nrow(timing_data_useable_RU) #265
+nrow(timing_data_useable_UR) #248
+nrow(timing_data_useable_UU) #257
+```
+### Segment data into DO and PO
+
+```{r}
+timing_data_useable_DO <- timing_data_useable |> filter(DO_PO == 0)
+timing_data_useable_PO <- timing_data_useable |> filter(DO_PO == 1)
+```
+
+### Now segment by sentence structure
+
+```{r}
+#Filter for the Double Object Datives (coded as 0)
+timing_data_useable_RR_DO <- 
+    timing_data_useable |> filter(Condition == "RR" & DO_PO == 0)
+timing_data_useable_RU_DO <-
+    timing_data_useable |> filter(Condition == "RU" & DO_PO == 0)
+timing_data_useable_UR_DO <-
+    timing_data_useable |> filter(Condition == "UR" & DO_PO == 0)
+timing_data_useable_UU_DO <-
+    timing_data_useable |> filter(Condition == "UU" & DO_PO == 0)
+
+#Filter for the Prepositional Object Datives (coded as 1)
+timing_data_useable_RR_PO <- 
+    timing_data_useable |> filter(Condition == "RR" & DO_PO == 1)
+timing_data_useable_RU_PO <-
+    timing_data_useable |> filter(Condition == "RU" & DO_PO == 1)
+timing_data_useable_UR_PO <-
+    timing_data_useable |> filter(Condition == "UR" & DO_PO == 1)
+timing_data_useable_UU_PO <-
+    timing_data_useable |> filter(Condition == "UU" & DO_PO == 1)
+```
+
+### Probably move this, but create the timing columns
+
+```{r}
+#Create Inition Latencies
+timing_data_useable_DO <-
+  timing_data_useable_DO |>
+  mutate(DO_Initiation_Latency = StartThe_INIT_Ella)
+
+timing_data_useable_PO <-
+  timing_data_useable_PO |>
+  mutate(PO_Initiation_Latency = StartThe_INIT_Ella)
+
+#Create duration for the person in the DO condition
+timing_data_useable_DO <- 
+    timing_data_useable_DO |> 
+    mutate(DO_Recipient_Duration = EndNP2_Ella - EndVerb_Ella)
+
+#Create the duration for the Item in the DO condition
+timing_data_useable_DO <- 
+    timing_data_useable_DO |> 
+    mutate(DO_Item_Duration = EndNP3_Ella - EndNP2_Ella)
+
+#Create duration for the Item in the PO condition (it comes first)
+timing_data_useable_PO <- 
+    timing_data_useable_PO |> 
+    mutate(PO_Item_Duration = EndNP2_Ella - EndVerb_Ella)
+
+#Create the duration for the Recipient in the PO condition (it comes second)
+timing_data_useable_PO <- 
+    timing_data_useable_PO |> 
+    mutate(PO_Recipient_Duration = EndNP3_Ella - EndNP2_Ella)
+```
+
+#There are some NAs in the data, and there shouldn't be. Investigate.
+#I forgot to upload a couple files for the transcribers, will need to get the timing data for them myself
+#They are highlighted in the data file
+```{r}
+#write prepositional object sentences to a file
+write_csv(timing_data_useable_PO, "../transformed_data/data_PO_with_durations.csv")
+
+#and then the double object ones to a different file
+write_csv(timing_data_useable_DO, "../transformed_data/data_DO_with_durations.csv")
+```
+
+### Make some raincloud plots
+
+GGrain -not my fav
+```{r}
+ggplot(timing_data_useable_PO, aes(x = Condition, y = PO_Item_Duration, fill =  Condition)) +
+    geom_rain(rain.side = 'l') + 
+    guides(color = guide_legend(override.aes=list(shape = 18))) +
+    scale_fill_manual(values = c("#808000", 
+                                 "#D2B48C", 
+                                 "#556B2F", 
+                                 "#F5DEB3"),
+                      labels = c("Related Person\nRelated Item", 
+                                 "Related Person\nUnrelated Item", 
+                                 "Unrelated Person\nRelated Item", 
+                                 "Unrelated Person\nUnrelated Item")) +
+    labs(
+        title = "Prepositional Object Dative Structure",
+        subtitle = "Item Durations by Condition",
+        x = "Condition",
+        y = "Duration (S)",
+        caption = "Your Caption") +
+    theme(
+        legend.spacing.y = unit(0.5, "cm"),
+        legend.key.height = unit(0.5, "cm"),
+        legend.text = element_text(margin = margin(10, 0, 10, 0))) 
+
+
+ggplot(timing_data_useable_PO, aes(x = Condition, y = PO_Recipient_Duration, fill =  Condition)) +
+    geom_rain(rain.side = 'l') +
+    scale_fill_manual(values = c("#808000", "#D2B48C", "#556B2F", "#F5DEB3"))
+
+ggplot(timing_data_useable_DO, aes(x = Condition, y = DO_Recipient_Duration, fill =  Condition)) +
+    geom_rain(rain.side = 'l') + 
+    scale_fill_manual(values = c("#808000", "#D2B48C", "#556B2F", "#F5DEB3"))
+
+ggplot(timing_data_useable_DO, aes(x = Condition, y = DO_Item_Duration, fill =  Condition)) +
+    geom_rain(rain.side = 'l') +
+    scale_fill_manual(values = c("#808000", "#D2B48C", "#556B2F", "#F5DEB3"))
+```
+
+PO Item Durations by condition
+```{r}
+#We're making it fall themed
+raincloudplot_colors <- c('#DAA520', '#DAA15E', '#A0522D', '#B22222')
+
+ggplot(timing_data_useable_PO, aes(x = factor(Condition), y = PO_Item_Duration)) + 
+  ggdist::stat_halfeye(
+    aes(fill = factor(Condition), color = factor(Condition)),  # Set fill and color aesthetics for half-eye
+    adjust = .5, 
+    width = .5, 
+    .width = .5, #if I'm understanding correctly, these control the relative widths of histogram & points
+    justification = -.3) + #can be used to move around left/right 
+  geom_boxplot(
+    aes(fill = factor(Condition)),  # Set fill aesthetic for boxplot
+    width = .15, #wider / narrower boxplot
+    position = position_nudge(x = -0.2)) +  #nudges the points to the left
+  geom_point(
+    aes(color = factor(Condition)),
+    size = 0.5, # controls size of points (make bigger/smaller)
+    alpha = .3, #opacity of points?
+    shape = 18,
+    position = position_jitter(
+      seed = 1, width = .05 ) #adds jitter
+  ) + 
+  
+  labs(
+    x = "Condition",
+    y = "Duration",
+    color = " ",
+    title = 'Item Durations in Prepositional Object Dative Sentences by Condition'
+  ) +
+  scale_fill_manual(values = raincloudplot_colors) +  # Set manual fill scale for boxplot and half-eye
+  scale_color_manual(values = raincloudplot_colors,
+                     labels = c("Both Related", "Person Related\nItem Unrelated", "Person Unrelated\nItem Related", "Both Unrelated")) +  # Set manual color scale for points
+  coord_cartesian(clip = "off") + #to make sure not to clip anything?
+  guides(fill = "none") +
+  theme(legend.key.height = unit(1, "cm"))
+```
+
+PO Recipient Durations by conidtion
+```{r}
+ggplot(timing_data_useable_PO, aes(x = factor(Condition), y = PO_Recipient_Duration)) + 
+  ggdist::stat_halfeye(
+    aes(fill = factor(Condition), color = factor(Condition)),  # Set fill and color aesthetics for half-eye
+    adjust = .5, 
+    width = .5, 
+    .width = .5, #if I'm understanding correctly, these control the relative widths of histogram & points
+    justification = -.3) + #can be used to move around left/right 
+  geom_boxplot(
+    aes(fill = factor(Condition)),  # Set fill aesthetic for boxplot
+    width = .15, #wider / narrower boxplot
+    position = position_nudge(x = -0.2)) +  #nudges the points to the left
+  geom_point(
+    aes(color = factor(Condition)),
+    size = 0.5, # controls size of points (make bigger/smaller)
+    alpha = .3, #opacity of points?
+    shape = 18,
+    position = position_jitter(
+      seed = 1, width = .05 ) #adds jitter
+  ) + 
+  
+  labs(
+    x = "Condition",
+    y = "Duration",
+    color = " ",
+    title = 'Recipient Durations in Prepositional Object Dative Sentences by Condition'
+  ) +
+  scale_fill_manual(values = raincloudplot_colors) +  # Set manual fill scale for boxplot and half-eye
+  scale_color_manual(values = raincloudplot_colors,
+                     labels = c("Both Related", "Person Related\nItem Unrelated", "Person Unrelated\nItem Related", "Both Unrelated")) +  # Set manual color scale for points
+  coord_cartesian(clip = "off") + #to make sure not to clip anything?
+  guides(fill = "none") +
+  theme(legend.key.height = unit(1, "cm"))
+```
+
+DO Recipient Durations by condition
+```{r}
+ggplot(timing_data_useable_DO, aes(x = factor(Condition), y = DO_Recipient_Duration)) + 
+  ggdist::stat_halfeye(
+    aes(fill = factor(Condition), color = factor(Condition)),  # Set fill and color aesthetics for half-eye
+    adjust = .5, 
+    width = .5, 
+    .width = .5, #if I'm understanding correctly, these control the relative widths of histogram & points
+    justification = -.3) + #can be used to move around left/right 
+  geom_boxplot(
+    aes(fill = factor(Condition)),  # Set fill aesthetic for boxplot
+    width = .15, #wider / narrower boxplot
+    position = position_nudge(x = -0.2)) +  #nudges the points to the left
+  geom_point(
+    aes(color = factor(Condition)),
+    size = 0.5, # controls size of points (make bigger/smaller)
+    alpha = .3, #opacity of points?
+    shape = 18,
+    position = position_jitter(
+      seed = 1, width = .05 ) #adds jitter
+  ) + 
+  
+  labs(
+    x = "Condition",
+    y = "Duration",
+    color = " ",
+    title = 'Recipient Durations in Double Object Dative Sentences by Condition'
+  ) +
+  scale_fill_manual(values = raincloudplot_colors) +  # Set manual fill scale for boxplot and half-eye
+  scale_color_manual(values = raincloudplot_colors,
+                     labels = c("Both Related", "Person Related\nItem Unrelated", "Person Unrelated\nItem Related", "Both Unrelated")) +  # Set manual color scale for points
+  coord_cartesian(clip = "off") + #to make sure not to clip anything?
+  guides(fill = "none") +
+  theme(legend.key.height = unit(1, "cm"))
+```
+
+DO Item durations by condition
+```{r}
+ggplot(timing_data_useable_DO, aes(x = factor(Condition), y = DO_Item_Duration)) + 
+  ggdist::stat_halfeye(
+    aes(fill = factor(Condition), color = factor(Condition)),  # Set fill and color aesthetics for half-eye
+    adjust = .5, 
+    width = .5, 
+    .width = .5, #if I'm understanding correctly, these control the relative widths of histogram & points
+    justification = -.3) + #can be used to move around left/right 
+  geom_boxplot(
+    aes(fill = factor(Condition)),  # Set fill aesthetic for boxplot
+    width = .15, #wider / narrower boxplot
+    position = position_nudge(x = -0.2)) +  #nudges the points to the left
+  geom_point(
+    aes(color = factor(Condition)),
+    size = 0.5, # controls size of points (make bigger/smaller)
+    alpha = .3, #opacity of points?
+    shape = 18,
+    position = position_jitter(
+      seed = 1, width = .05 ) #adds jitter
+  ) + 
+  
+  labs(
+    x = "Condition",
+    y = "Duration",
+    color = " ",
+    title = 'Item Durations in Double Object Dative Sentences by Condition'
+  ) +
+  scale_fill_manual(values = raincloudplot_colors) +  # Set manual fill scale for boxplot and half-eye
+  scale_color_manual(values = raincloudplot_colors,
+                     labels = c("Both Related", "Person Related\nItem Unrelated", "Person Unrelated\nItem Related", "Both Unrelated")) +  # Set manual color scale for points
+  coord_cartesian(clip = "off") + #to make sure not to clip anything?
+  guides(fill = "none") +
+  theme(legend.key.height = unit(1, "cm"))
+```
+
+Initiation Latencies for PO - do we need to add any exclusion criteria? This was the first version where the people got to do their own timing vs being on a timer
+```{r}
+ggplot(timing_data_useable_PO, aes(x = factor(Condition), y = PO_Initiation_Latency)) + 
+  ggdist::stat_halfeye(
+    aes(fill = factor(Condition), color = factor(Condition)),  # Set fill and color aesthetics for half-eye
+    adjust = .5, 
+    width = .5, 
+    .width = .5, #if I'm understanding correctly, these control the relative widths of histogram & points
+    justification = -.3) + #can be used to move around left/right 
+  geom_boxplot(
+    aes(fill = factor(Condition)),  # Set fill aesthetic for boxplot
+    width = .15, #wider / narrower boxplot
+    position = position_nudge(x = -0.2)) +  #nudges the points to the left
+  geom_point(
+    aes(color = factor(Condition)),
+    size = 0.5, # controls size of points (make bigger/smaller)
+    alpha = .3, #opacity of points?
+    shape = 18,
+    position = position_jitter(
+      seed = 1, width = .05 ) #adds jitter
+  ) + 
+  
+  labs(
+    x = "Condition",
+    y = "Duration",
+    color = " ",
+    title = 'Initiation Latencies in Prepositional Object Dative Sentences by Condition'
+  ) +
+  scale_fill_manual(values = raincloudplot_colors) +  # Set manual fill scale for boxplot and half-eye
+  scale_color_manual(values = raincloudplot_colors,
+                     labels = c("Both Related", "Person Related\nItem Unrelated", "Person Unrelated\nItem Related", "Both Unrelated")) +  # Set manual color scale for points
+  coord_cartesian(clip = "off") + #to make sure not to clip anything?
+  guides(fill = "none") +
+  theme(legend.key.height = unit(1, "cm"))
+```
+
+Initiation Latencies: DO - weirdness
+```{r}
+ggplot(timing_data_useable_DO, aes(x = factor(Condition), y = DO_Initiation_Latency)) + 
+  ggdist::stat_halfeye(
+    aes(fill = factor(Condition), color = factor(Condition)),  # Set fill and color aesthetics for half-eye
+    adjust = .5, 
+    width = .5, 
+    .width = .5, #if I'm understanding correctly, these control the relative widths of histogram & points
+    justification = -.3) + #can be used to move around left/right 
+  geom_boxplot(
+    aes(fill = factor(Condition)),  # Set fill aesthetic for boxplot
+    width = .15, #wider / narrower boxplot
+    position = position_nudge(x = -0.2)) +  #nudges the points to the left
+  geom_point(
+    aes(color = factor(Condition)),
+    size = 0.5, # controls size of points (make bigger/smaller)
+    alpha = .3, #opacity of points?
+    shape = 18,
+    position = position_jitter(
+      seed = 1, width = .05 ) #adds jitter
+  ) + 
+  
+  labs(
+    x = "Condition",
+    y = "Duration",
+    color = " ",
+    title = 'Initiation Latencies in Double Object Dative Sentences by Condition'
+  ) +
+  scale_fill_manual(values = raincloudplot_colors) +  # Set manual fill scale for boxplot and half-eye
+  scale_color_manual(values = raincloudplot_colors,
+                     labels = c("Both Related", "Person Related\nItem Unrelated", "Person Unrelated\nItem Related", "Both Unrelated")) +  # Set manual color scale for points
+  coord_cartesian(clip = "off") + #to make sure not to clip anything?
+  guides(fill = "none") +
+  theme(legend.key.height = unit(1, "cm"))
+```
+
+### I just wanted to fit some simple models
+
+# DO Recipient Models
+
+```{r DO Recipient Cosine People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_Cosine_People <- brm(DO_Recipient_Duration ~ scaled_cosine_people + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_Cosine_People)
+plot(DO_Recipient_Cosine_People)
+```
+
+```{r DO Recipient PMI People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_PMI_People <- brm(DO_Recipient_Duration ~ scaled_pmi_people + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_PMI_People)
+plot(DO_Recipient_PMI_People)
+```
+
+```{r DO Recipient PMI Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_PMI_Item <- brm(DO_Recipient_Duration ~ scaled_pmi_items + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_PMI_Item)
+plot(DO_Recipient_PMI_Item)
+```
+
+```{r DO Recipient Syllables People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_num_syllables_second_person <- brm(DO_Recipient_Duration ~ scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_scaled_num_syllables_second_person)
+plot(DO_Recipient_scaled_num_syllables_second_person)
+```
+
+```{r DO Recipient Syllable Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_num_syllables_item <- brm(DO_Recipient_Duration ~ scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_scaled_num_syllables_item)
+plot(DO_Recipient_scaled_num_syllables_item)
+```
+
+```{r DO Recipient Name Agreement People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_name_agreement_second_person <- brm(DO_Recipient_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_scaled_name_agreement_second_person)
+plot(DO_Recipient_scaled_name_agreement_second_person)
+```
+
+```{r DO Recipient Name Agreement Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_name_agreement_item <- brm(DO_Recipient_Duration ~ scaled_name_agreement_item + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_scaled_name_agreement_item)
+plot(DO_Recipient_scaled_name_agreement_item)
+```
+
+```{r DO Recipient Frequency People}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_second_person_frequency <- brm(DO_Recipient_Duration ~ scaled_second_person_frequency + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_scaled_second_person_frequency)
+plot(DO_Recipient_scaled_second_person_frequency)
+```
+
+```{r DO Recipient Frequency Items}
+options(mc.cores = parallel::detectCores())
+
+DO_Recipient_scaled_item_frequency <- brm(DO_Recipient_Duration ~ scaled_item_frequency + (1|ParticipantNum) + (1|Anchor),
+                     control=list(adapt_delta=0.995, max_treedepth=15),
+                     iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),
+                     data = timing_data_useable_DO)
+summary(DO_Recipient_scaled_item_frequency)
+plot(DO_Recipient_scaled_item_frequency)
+```
+
+
+

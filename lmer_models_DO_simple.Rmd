@@ -1,0 +1,187 @@
+---
+title: "DO Lmer Models"
+author: "Jacqueline Erens"
+date: "2023-10-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Load in DO Data}
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+nrow(DO_data)
+```
+
+```{r}
+library(lmerTest)
+library(lme4)
+```
+
+```{r Read in DO Data}
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+nrow(DO_data)
+```
+
+# DO Recipient Models
+
+```{r DO Recipient Cosine People}
+DO_Recipient_Cosine_People <- lmer(DO_Recipient_Duration ~ scaled_cosine_people + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_Cosine_People)
+plot(DO_Recipient_Cosine_People)
+```
+
+```{r DO Recipient PMI Item}
+DO_Recipient_scaled_pmi_items <- lmer(DO_Recipient_Duration ~ 
+                                                            scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_scaled_pmi_items)
+plot(DO_Recipient_scaled_pmi_items)
+```
+
+```{r DO Recipient PMI People}
+DO_Recipient_scaled_pmi_people <- lmer(DO_Recipient_Duration ~ 
+                                                            scaled_pmi_people + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_scaled_pmi_people)
+plot(DO_Recipient_scaled_pmi_people)
+```
+
+```{r DO Recipient Name Agreement People}
+DO_Recipient_scaled_name_agreement_second_person <- lmer(DO_Recipient_Duration ~ 
+                                                            scaled_name_agreement_second_person + (1|ParticipantNum), data = DO_data)
+summary(DO_Recipient_scaled_name_agreement_second_person)
+plot(DO_Recipient_scaled_name_agreement_second_person)
+```
+
+```{r DO Recipient Name Agreement Items}
+DO_Recipient_scaled_name_agreement_item <- lmer(DO_Recipient_Duration ~ 
+                                                    scaled_name_agreement_item + (1|ParticipantNum), data = DO_data)
+summary(DO_Recipient_scaled_name_agreement_item)
+plot(DO_Recipient_scaled_name_agreement_item)
+```
+
+```{r DO Recipient Frequency People}
+DO_Recipient_scaled_second_person_frequency <- lmer(DO_Recipient_Duration ~ 
+                                                        scaled_second_person_frequency + (1|ParticipantNum), data = DO_data)
+summary(DO_Recipient_scaled_second_person_frequency)
+plot(DO_Recipient_scaled_second_person_frequency)
+```
+
+```{r DO Recipient Frequency Items}
+DO_Recipient_scaled_item_frequency <- lmer(DO_Recipient_Duration ~ 
+                                               scaled_item_frequency + (1|ParticipantNum), data = DO_data)
+summary(DO_Recipient_scaled_item_frequency)
+plot(DO_Recipient_scaled_item_frequency)
+```
+
+```{r DO Recipient Syllable Length People}
+DO_Recipient_scaled_num_syllables_second_person <- lmer(DO_Recipient_Duration ~ 
+                                                            scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_scaled_num_syllables_second_person)
+plot(DO_Recipient_scaled_num_syllables_second_person)
+```
+
+```{r DO Recipient Syllable Length Item}
+DO_Recipient_scaled_num_syllables_item <- lmer(DO_Recipient_Duration ~ 
+                                                            scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_scaled_num_syllables_item)
+plot(DO_Recipient_scaled_num_syllables_item)
+```
+
+```{r DO Recipient Contrast Person}
+DO_Recipient_contrast_person <- lmer(DO_Recipient_Duration ~ contrast_person + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_contrast_person)
+plot(DO_Recipient_contrast_person)
+```
+
+```{r DO Recipient_contrast item}
+DO_Recipient_contrast_item <- lmer(DO_Item_Duration ~ contrast_item + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Recipient_contrast_item)
+plot(DO_Recipient_contrast_item)
+```
+# DO Item Models
+
+```{r DO Item Cosine People}
+DO_Item_Cosine_People <- lmer(DO_Item_Duration ~ scaled_cosine_people + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_Cosine_People)
+plot(DO_Item_Cosine_People)
+```
+
+```{r DO Item PMI People}
+DO_Item_PMI_People <- lmer(DO_Item_Duration ~ scaled_pmi_people + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_PMI_People)
+plot(DO_Item_PMI_People)
+```
+
+```{r DO Item PMI Items}
+DO_Item_PMI_Item <- lmer(DO_Item_Duration ~ scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_PMI_Item)
+plot(DO_Item_PMI_Item)
+```
+
+```{r DO Item Syllables People}
+DO_Item_scaled_num_syllables_second_person <- lmer(DO_Item_Duration ~ scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_num_syllables_second_person)
+plot(DO_Item_scaled_num_syllables_second_person)
+```
+
+```{r DO Item Syllable Items}
+DO_Item_scaled_num_syllables_item <- lmer(DO_Item_Duration ~ scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_num_syllables_item)
+plot(DO_Item_scaled_num_syllables_item)
+```
+
+```{r DO Item Name Agreement People}
+DO_Item_scaled_name_agreement_second_person <- lmer(DO_Item_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_name_agreement_second_person)
+plot(DO_Item_scaled_name_agreement_second_person)
+```
+
+```{r DO Item Name Agreement Items}
+DO_Item_scaled_name_agreement_item <- lmer(DO_Item_Duration ~ scaled_name_agreement_item + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_name_agreement_item)
+plot(DO_Item_scaled_name_agreement_item)
+```
+
+```{r DO Item Frequency People}
+DO_Item_scaled_second_person_frequency <- lmer(DO_Item_Duration ~ scaled_second_person_frequency + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_second_person_frequency)
+plot(DO_Item_scaled_second_person_frequency)
+```
+
+```{r DO Item Frequency Items}
+DO_Item_scaled_item_frequency <- lmer(DO_Item_Duration ~ scaled_item_frequency + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_item_frequency)
+plot(DO_Item_scaled_item_frequency)
+```
+
+
+```{r DO Item Syllable Length People}
+DO_Item_scaled_num_syllables_second_person <- lmer(DO_Item_Duration ~ 
+                                                            scaled_num_syllables_second_person + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_num_syllables_second_person)
+plot(DO_Item_scaled_num_syllables_second_person)
+```
+
+
+```{r DO Item Syllable Length Item}
+DO_Item_scaled_num_syllables_item <- lmer(DO_Item_Duration ~ 
+                                                            scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_scaled_num_syllables_item)
+plot(DO_Item_scaled_num_syllables_item)
+```
+
+
+```{r DO Recipient Contrast Item}
+DO_Item_contrast_person <- lmer(DO_Item_Duration ~ contrast_person + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_contrast_person)
+plot(DO_Item_contrast_person)
+```
+
+```{r DO Item Contrast Item}
+DO_Item_contrast_item <- lmer(DO_Item_Duration ~ contrast_item + (1|ParticipantNum) + (1|Anchor), data = DO_data)
+summary(DO_Item_contrast_item)
+plot(DO_Item_contrast_item)
+```

@@ -1,0 +1,153 @@
+---
+title: "BarPlots"
+author: "Jacqueline Erens"
+date: "2023-10-26"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load in packages
+```{r load packages}
+library(ggplot2)
+library(MASS) 
+library(reshape2)
+library(tidyverse)
+```
+
+## Load in Data
+```{r read data}
+PO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_PO_with_durations.csv')
+head(PO_data)
+nrow(PO_data)
+
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+nrow(DO_data)
+```
+
+
+#Timing Graphs (bars)
+```{r}
+
+#For DO
+RR_timing_data_DO_2022 <- subset(DO_data, Condition == "RR")
+RU_timing_data_DO_2022 <- subset(DO_data, Condition == "RU")
+UR_timing_data_DO_2022 <- subset(DO_data, Condition == "UR")
+UU_timing_data_DO_2022 <- subset(DO_data, Condition == "UU")
+
+RR_init_DO_2022 <- RR_timing_data_DO_2022$DO_Initiation_Latency
+RU_init_DO_2022 <- RU_timing_data_DO_2022$DO_Initiation_Latency
+UR_init_DO_2022 <- UR_timing_data_DO_2022$DO_Initiation_Latency
+UU_init_DO_2022 <- UU_timing_data_DO_2022$DO_Initiation_Latency
+
+#Dur1 = time from end of first NP - time to end of verb
+#Dur2 = time from end of final phrase - time to end of first NP
+RR_1_DO_2022 <- RR_timing_data_DO_2022$DO_Recipient_Duration
+RR_2_DO_2022 <- RR_timing_data_DO_2022$DO_Item_Duration
+UR_1_DO_2022 <- UR_timing_data_DO_2022$DO_Recipient_Duration
+UR_2_DO_2022 <- UR_timing_data_DO_2022$DO_Item_Duration
+RU_1_DO_2022 <- RU_timing_data_DO_2022$DO_Recipient_Duration
+RU_2_DO_2022 <- RU_timing_data_DO_2022$DO_Item_Duration
+UU_1_DO_2022 <- UU_timing_data_DO_2022$DO_Recipient_Duration
+UU_2_DO_2022 <- UU_timing_data_DO_2022$DO_Item_Duration
+
+conds_DO_2022 <- c(rep("Related Person \n Related Item", length(RR_1_DO_2022)),
+                rep("Related Person \n Unrelated Item", length(RU_1_DO_2022)),
+                rep("Unrelated Person \n Related Item", length(UR_1_DO_2022)),
+                rep("Unrelated Person \n Unrelated Item", length(UU_1_DO_2022)))
+
+Duration1_time_2022 <- c(RR_1_DO_2022,RU_1_DO_2022,UR_1_DO_2022,UU_1_DO_2022)
+Duration2_time_2022 <- c(RR_2_DO_2022,RU_2_DO_2022,UR_2_DO_2022,UU_2_DO_2022)
+DO_Sums_2022 <- data.frame(conds_DO_2022, Duration1_time_2022, Duration2_time_2022)
+#DO_Sums_2022
+
+#condition to durations and just values (so now only 1 column with time)
+DO_Sums_2022 <- melt(DO_Sums_2022, id="conds_DO_2022")
+#DO_Sums_2022
+
+summary_DO_durs_2022 <- DO_Sums_2022 %>% group_by(conds_DO_2022, variable) %>% summarise(means = mean(value), 
+                                                                         ses = sd(value) / sqrt(length(value)))
+summary_DO_durs_2022
+
+DO_plot_2022 <- ggplot(summary_DO_durs_2022, aes(x = conds_DO_2022, y = means, fill = variable)) + 
+    geom_bar(stat = 'identity', position = 'dodge') +
+    geom_errorbar(aes(ymin = means - ses, ymax = means + ses), width = 0.2, position = position_dodge(0.9)) + 
+    #theme_minimal() +
+    labs(x = "", y = "Duration (s)") + 
+    scale_y_continuous(breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1.0)) + 
+    scale_fill_manual(name = "", labels = c("Recipient Duration \n(Noun Phrase 1)", "Item Duration \n (Noun Phrase 2)"),values = c("rosybrown4", "darkseagreen"))+
+    theme(legend.key.size = unit(1, "cm")) + 
+    ggtitle("Duration of Segments in Double Object Constructions")
+
+DO_plot_2022
+
+ggsave("../figures/DO_plot_2022.png", plot = DO_plot_2022, width=9, height=8, dpi = 300)
+
+```
+
+```{r}
+#Now for PO
+RR_timing_data_PO_2022 <- subset(PO_data, Condition == "RR")
+RU_timing_data_PO_2022 <- subset(PO_data, Condition == "RU")
+UR_timing_data_PO_2022 <- subset(PO_data, Condition == "UR")
+UU_timing_data_PO_2022 <- subset(PO_data, Condition == "UU")
+
+RR_init_PO_2022 <- RR_timing_data_PO_2022$Initiation_Latency
+RU_init_PO_2022 <- RU_timing_data_PO_2022$Initiation_Latency
+UR_init_PO_2022 <- UR_timing_data_PO_2022$Initiation_Latency
+UU_init_PO_2022 <- UU_timing_data_PO_2022$Initiation_Latency
+
+#Dur1 = time from end of first NP - time to end of verb (ie from the farmer is giving --- to the end of corn)
+#Dur2 = time from end of final phrase - time to end of first NP (ie from the end of corn to end of fisherman in "to the fisherman")
+RR_1_PO_2022 <- RR_timing_data_PO_2022$PO_Item_Duration 
+RR_2_PO_2022 <- RR_timing_data_PO_2022$PO_Recipient_Duration
+RU_1_PO_2022 <- RU_timing_data_PO_2022$PO_Item_Duration
+RU_2_PO_2022 <- RU_timing_data_PO_2022$PO_Recipient_Duration
+UR_1_PO_2022 <- UR_timing_data_PO_2022$PO_Item_Duration
+UR_2_PO_2022 <- UR_timing_data_PO_2022$PO_Recipient_Duration
+UU_1_PO_2022 <- UU_timing_data_PO_2022$PO_Item_Duration
+UU_2_PO_2022 <- UU_timing_data_PO_2022$PO_Recipient_Duration
+
+conds_PO_2022 = c(rep("Related Person \n Related Item", length(RR_1_PO_2022)),
+             rep("Related Person \n Unrelated Item", length(RU_1_PO_2022)),
+             rep("Unrelated Person \n Related Item", length(UR_1_PO_2022)),
+             rep("Unrelated Person \n Unrelated Item", length(UU_1_PO_2022)))
+
+duration1_PO_2022 <- c(RR_1_PO_2022, RU_1_PO_2022, UR_1_PO_2022, UU_1_PO_2022)
+duration2_PO_2022 <- c(RR_2_PO_2022, RU_2_PO_2022, UR_2_PO_2022, UU_2_PO_2022)
+
+new_df_PO_2022 <- data.frame(conds_PO_2022, duration1_PO_2022, duration2_PO_2022)
+#new_df_PO_2022
+
+df.melt_PO_2022 <- melt(new_df_PO_2022, id="conds_PO_2022")
+#df.melt_PO_2022
+
+summary_PO_2022 <- df.melt_PO_2022 %>% 
+    group_by(conds_PO_2022, variable) %>% 
+    summarise(mean = mean(value), 
+              se = sd(value) / sqrt(length(value)))
+summary_PO_2022
+
+PO_plot_2022 <- ggplot(summary_PO_2022, aes(x = conds_PO_2022, y = mean, fill = variable)) +
+    geom_bar(stat = 'identity', position = 'dodge') +
+    geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.2, position = position_dodge(0.9)) + 
+    #theme_minimal() +
+    scale_y_continuous(breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4)) + 
+    labs(x = "", y = "Duration (s)") + 
+    scale_fill_manual(name = "", labels = c("Item Duration \n(Noun Phrase)", 
+                                            "Recipient Duration \n (Prepositional Phrase)"),
+                      values = c("darkseagreen", "rosybrown4")) +
+    theme(legend.key.size = unit(1, "cm")) + 
+    ggtitle("Duration of Segments in Prepositional Dative Constructions") 
+
+PO_plot_2022
+
+ggsave("../figures/PO_plot_2022.png", plot = PO_plot_2022, width=9, height=8, dpi = 300)
+```
+
+

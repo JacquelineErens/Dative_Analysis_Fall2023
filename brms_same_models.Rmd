@@ -1,0 +1,198 @@
+---
+title: "BRMS Models copy of lmer ones"
+author: "Jacqueline Erens"
+date: "2023-10-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(lme4)
+library(ggplot2)
+library(dplyr)
+library(brms)
+library(rempsyc)
+library(flextable)
+options(mc.cores = parallel::detectCores())
+```
+
+```{r}
+DO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_DO_with_durations.csv')
+head(DO_data)
+nrow(DO_data)
+
+PO_data <- read_csv('/Users/jackisworkcomputer/Desktop/projects/FYP/FALL2023_DATIVE_ANALYSIS/Timing/transformed_data/data_PO_with_durations.csv')
+head(PO_data)
+nrow(PO_data)
+```
+
+
+# DO Models
+## Best model is just name agreement of second person
+```{r DO Recipient Complex}
+
+BRMS_DO_Recipient_Complex0 <- brm(DO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor), 
+                                                      control=list(adapt_delta=0.995, max_treedepth=15),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Recipient_Complex0)
+plot(BRMS_DO_Recipient_Complex0)
+
+BRMS_DO_Recipient_Complex0_2 <- brm(DO_Recipient_Duration ~ scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor),
+                                                      control=list(adapt_delta=0.995, max_treedepth=15),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Recipient_Complex0_2)
+plot(BRMS_DO_Recipient_Complex0_2)
+
+BRMS_DO_Recipient_Complex1 <- brm(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people * scaled_pmi_items + 
+                                                      (1|ParticipantNum) + (1|Anchor), 
+                                                      control=list(adapt_delta=0.995, max_treedepth=15),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Recipient_Complex1)
+
+#take out pmi for items since this is the people
+BRMS_DO_Recipient_Complex2 <- brm(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), 
+                                                      control=list(adapt_delta=0.995, max_treedepth=15),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Recipient_Complex2)
+
+BRMS_DO_Recipient_Complex3 <- brm(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people * scaled_num_syllables_item+ 
+                                                      (1|ParticipantNum) + (1|Anchor),
+                                                      control=list(adapt_delta=0.995, max_treedepth=15),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE),data = DO_data)
+summary(BRMS_DO_Recipient_Complex3)
+
+BRMS_DO_Recipient_Complex4 <- brm(DO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_num_syllables_item + 
+                                                      (1|ParticipantNum) + (1|Anchor), 
+                                                      control=list(adapt_delta=0.995, max_treedepth=15),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Recipient_Complex4)
+
+#none provide better fits over just scaled num syllables second person
+loo(BRMS_DO_Recipient_Complex0,BRMS_DO_Recipient_Complex1, BRMS_DO_Recipient_Complex2, BRMS_DO_Recipient_Complex3, BRMS_DO_Recipient_Complex4)
+
+# all these are better fits than the one with the item syllable length included, so dropping that
+loo(BRMS_DO_Recipient_Complex0_2,BRMS_DO_Recipient_Complex1)
+loo(BRMS_DO_Recipient_Complex0_2,BRMS_DO_Recipient_Complex2)
+loo(BRMS_DO_Recipient_Complex0_2,BRMS_DO_Recipient_Complex3)
+loo(BRMS_DO_Recipient_Complex0_2,BRMS_DO_Recipient_Complex4)
+
+# more complex model not a better fit
+loo(BRMS_DO_Recipient_Complex1,BRMS_DO_Recipient_Complex2)
+
+summary(BRMS_DO_Recipient_Complex2)
+```
+
+```{r DO Item Complex}
+BRMS_DO_Item_Complex00 <- brm(DO_Item_Duration ~ scaled_name_agreement_second_person + (1|ParticipantNum) + (1|Anchor), 
+                                                control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex00)
+
+BRMS_DO_Item_Complex001 <- brm(DO_Item_Duration ~ scaled_name_agreement_item + (1|ParticipantNum) + (1|Anchor), 
+                                                control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex001)
+
+
+BRMS_DO_Item_Complex002 <- brm(DO_Item_Duration ~ scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), 
+                                                control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex002)
+
+
+BRMS_DO_Item_Complex003 <- brm(DO_Item_Duration ~ scaled_item_frequency + (1|ParticipantNum) + (1|Anchor), 
+                                                control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex003)
+
+
+BRMS_DO_Item_Complex004 <- brm(DO_Item_Duration ~ scaled_num_syllables_item + (1|ParticipantNum) + (1|Anchor), 
+                                                control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex004)
+
+BRMS_DO_Item_Complex005 <- brm(DO_Item_Duration ~ scaled_pmi_people + (1|ParticipantNum) + (1|Anchor), 
+                                                control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex005)
+
+
+BRMS_DO_Item_Complex0 <- brm(DO_Item_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people * scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), 
+                                                control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex0)
+
+#take out pmi for people since this is the item - this one is the best according to LOO
+BRMS_DO_Item_Complex1 <- brm(DO_Item_Duration ~ scaled_name_agreement_second_person * scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), 
+                                                 control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                 iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = DO_data)
+summary(BRMS_DO_Item_Complex1)
+
+loo(BRMS_DO_Item_Complex0,BRMS_DO_Item_Complex1)
+loo(BRMS_DO_Item_Complex00,BRMS_DO_Item_Complex0)
+loo(BRMS_DO_Item_Complex002,BRMS_DO_Item_Complex1)
+```
+
+# PO Models
+
+```{r PO Item Complex PMI}
+# A fun 3-way interaction
+BRMS_PO_Item_Complex_PMI <- brm(PO_Item_Duration ~ scaled_name_agreement_second_person * 
+                             scaled_pmi_items * scaled_pmi_people + (1|ParticipantNum) + (1|Anchor), 
+                             control = list(adapt_delta = 0.995, max_treedepth = 12),
+                             iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = PO_data)
+summary(BRMS_PO_Item_Complex_PMI)
+
+#take out pmi for people since this models the item duration - this one performs better than with PMI People in
+BRMS_PO_Item_Complex_PMI_1 <- brm(PO_Item_Duration ~ scaled_name_agreement_second_person * 
+                             scaled_pmi_items + (1|ParticipantNum) + (1|Anchor), 
+                             control = list(adapt_delta = 0.995, max_treedepth = 12),
+                             iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = PO_data)
+summary(BRMS_PO_Item_Complex_PMI_1)
+
+loo(BRMS_PO_Item_Complex_PMI, BRMS_PO_Item_Complex_PMI_1) #not significantly different, so which to use
+```
+
+
+```{r PO Recipient Complex PMI}
+
+BRMS_PO_Recipient_Complex_PMI1 <- brm(PO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people * scaled_pmi_items + 
+                                                      (1|ParticipantNum) + (1|Anchor), 
+                                                      control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = PO_data)
+summary(BRMS_PO_Recipient_Complex_PMI1)
+
+#take out pmi for items since this is the people - this one performed better on LOO
+BRMS_PO_Recipient_Complex_PMI2 <- brm(PO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_pmi_people + 
+                                                      (1|ParticipantNum) + (1|Anchor), 
+                                                      control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = PO_data)
+summary(BRMS_PO_Recipient_Complex_PMI2)
+
+loo(BRMS_PO_Recipient_Complex_PMI1,BRMS_PO_Recipient_Complex_PMI2)
+```
+
+### Only scaled name agreement of second person ever significant when both PMI and name agreement included ###
+
+```{r PO Recipient Complex COSINE}
+
+BRMS_PO_Recipient_Complex_COS1 <- brm(PO_Recipient_Duration ~ scaled_name_agreement_second_person * scaled_cosine_people + 
+                                                      (1|ParticipantNum) + (1|Anchor),
+                                                      control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = PO_data)
+summary(BRMS_PO_Recipient_Complex_COS1)
+
+#take out pmi for items since this is the people
+BRMS_PO_Recipient_Complex_COS2 <- brm(PO_Recipient_Duration ~ scaled_name_agreement_second_person + 
+                                                      (1|ParticipantNum) + (1|Anchor),
+                                                      control = list(adapt_delta = 0.995, max_treedepth = 12),
+                                                      iter = 20000, thin = 10, save_pars = save_pars(all = TRUE), data = PO_data)
+summary(BRMS_PO_Recipient_Complex_COS2)
+
+#model with cosine a better fit to the data
+loo(BRMS_PO_Recipient_Complex_COS1,BRMS_PO_Recipient_Complex_COS2)
+```
+
